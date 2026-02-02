@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四季答案之书</title>
+    <style>
+        /* --- 全局变量 --- */
+        :root {
+            --season-color: #fff; /* 核心变量：随着季节改变 */
+            --bg-layer: none;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            color: var(--season-color); /* 字体颜色回归主题色 */
+            font-family: "Songti SC", "SimSun", serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #050505;
+            overflow: hidden;
+            transition: color 1s ease;
+        }
+
+        /* --- 1. 背景层 (星云流光) --- */
+        .bg-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.8;
+            transition: opacity 1s ease;
+            background-size: 200% 200%;
+            animation: gradientMove 20s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- 2. 四季配色定义 --- */
+        
+        /* 春 (Spring) - #83c76e */
+        body.spring { --season-color: #83c76e; }
+        body.spring .bg-layer {
+            background-image: radial-gradient(circle at center, rgba(131,199,110,0.2) 0%, rgba(0,20,0,0.9) 70%);
+        }
+
+        /* 夏 (Summer) - #ff7043 */
+        body.summer { --season-color: #ff7043; }
+        body.summer .bg-layer {
+            background-image: radial-gradient(circle at center, rgba(255,112,67,0.2) 0%, rgba(40,10,10,0.9) 70%);
+        }
+
+        /* 秋 (Autumn) - #ffa812 */
+        body.autumn { --season-color: #ffa812; }
+        body.autumn .bg-layer {
+            background-image: radial-gradient(circle at center, rgba(255,168,18,0.2) 0%, rgba(40,20,5,0.9) 70%);
+        }
+
+        /* 冬 (Winter) - #80deea */
+        body.winter { --season-color: #80deea; }
+        body.winter .bg-layer {
+            background-image: radial-gradient(circle at center, rgba(128,222,234,0.2) 0%, rgba(5,15,30,0.9) 70%);
+        }
+
+        /* --- 3. 界面组件 --- */
+        .top-nav {
+            position: absolute;
+            top: 20px; right: 20px;
+            display: flex; gap: 15px; z-index: 100;
+        }
+
+        .nav-btn {
+            padding: 8px 15px;
+            border: 1px solid var(--season-color);
+            border-radius: 20px;
+            color: var(--season-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .nav-btn:hover {
+            background: var(--season-color);
+            color: #000;
+            box-shadow: 0 0 20px var(--season-color);
+        }
+
+        #main-content {
+            text-align: center;
+            z-index: 10;
+            padding: 40px;
+            border: 1px solid var(--season-color); 
+            background: rgba(10, 10, 10, 0.6);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            width: 85%; max-width: 400px; min-height: 350px;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+
+        h1 {
+            font-weight: 300; letter-spacing: 6px; margin-bottom: 5px;
+            font-size: 1.6rem; opacity: 0.9;
+        }
+
+        #season-badge {
+            font-size: 0.85rem; letter-spacing: 2px; margin-bottom: 30px; opacity: 0.7;
+        }
+
+        #answer-box {
+            font-size: 2rem; 
+            font-weight: bold; 
+            min-height: 180px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            cursor: pointer;
+            text-shadow: 0 0 15px var(--season-color);
+            padding: 0 10px;
+            line-height: 1.5;
+        }
+
+        .hint-text {
+            font-size: 1rem; opacity: 0.6; font-weight: normal;
+            animation: pulse 2s infinite; text-shadow: none;
+        }
+
+        /* --- 4. 弹窗样式 --- */
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 200;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+        }
+        #modal-overlay.active { opacity: 1; pointer-events: all; }
+
+        .modal-card {
+            border: 1px solid #444; padding: 30px; border-radius: 10px;
+            max-width: 80%; text-align: center; color: #ccc;
+            background: #111;
+        }
+        .season-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; text-align: left; }
+        .season-item h3 { margin: 0; font-size: 1rem; }
+        .season-item p { margin: 5px 0 0 0; font-size: 0.8rem; color: #888; }
+        
+        .close-btn {
+            background: transparent; border: 1px solid #fff; color: #fff;
+            padding: 8px 25px; cursor: pointer; margin-top: 10px;
+            transition: 0.3s;
+        }
+        .close-btn:hover { background: #fff; color: #000; }
+
+        /* --- 5. 星星动画 --- */
+        .star {
+            position: absolute; background: var(--season-color);
+            border-radius: 50%; opacity: 0;
+            box-shadow: 0 0 8px 1px var(--season-color);
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+        @keyframes twinkle { 0% {opacity:0; transform:scale(0.5);} 50% {opacity:1; transform:scale(1.2);} 100% {opacity:0; transform:scale(0.5);} }
+        @keyframes pulse { 0% {opacity:0.4;} 50% {opacity:0.8;} 100% {opacity:0.4;} }
+        .fade-in { animation: fadeIn 1s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+        @keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+
+    <div class="top-nav">
+        <div class="nav-btn" onclick="showIntro()">四季法则</div>
+        <div class="nav-btn" onclick="switchSeason()">↻ 切换时空</div>
+    </div>
+
+    <div id="main-content">
+        <h1>答案之书</h1>
+        <div id="season-badge">Loading...</div>
+        <div id="answer-box"><span class="hint-text">点击屏幕 · 寻找答案</span></div>
+    </div>
+
+    <div id="modal-overlay" class="active">
+        <div class="modal-card">
+            <h2 style="font-weight: normal; letter-spacing: 3px; color: #fff;">四季神谕</h2>
+            <div class="season-grid">
+                <div class="season-item"><h3 style="color:#83c76e">春 · Spring</h3><p>新生与希望<br>适合提问：开始、尝试、方向</p></div>
+                <div class="season-item"><h3 style="color:#ff7043">夏 · Summer</h3><p>热情与行动<br>适合提问：决断、勇气、结果</p></div>
+                <div class="season-item"><h3 style="color:#ffa812">秋 · Autumn</h3><p>收获与反思<br>适合提问：放下、结果、审视</p></div>
+                <div class="season-item"><h3 style="color:#80deea">冬 · Winter</h3><p>蛰伏与内省<br>适合提问：等待、内在、休息</p></div>
+            </div>
+            <button class="close-btn" onclick="closeIntro()">开启旅程</button>
+        </div>
+    </div>
+
+    <div id="stars-container"></div>
+
+    <script>
+        // --- 核心：真实答案库 (已分类) ---
+        const answerDatabase = {
+            'spring': [ 
+                "别难过，你是最棒的", "时间会证明一切", "从现在开始一年也没有关系", "好运将会降临", "寻求援助会让成功",
+                "也许会有好转", "不用怀疑", "专注你当下的生活", "坚持终有回报", "这不可能失败",
+                "这是你不会忘记的", "这肯定会让事情变得有趣", "这次会带来好运", "有充分的理由保持乐观", "相信自己的直觉",
+                "等待一个更好的机会", "一个正在到来的晴天", "你会发现一切你所需要知道的", "你将奔赴一场未知的旅程", "你是对的，但不要勉强",
+                "你会庆幸你做了", "看着也会发生什么", "一切皆有可能", "你会得到大多数的支持", "会有障碍要克服，但结果是好的",
+                "这是一个极佳的创意", "这会让你付出代价，但值得", "无论如何你都可以提升", "不要被情绪左右", "最好的事情正要发生",
+                "必须努力奔跑起来", "充满希望", "去创造吧", "你会发现惊喜", "专注于美好的事物"
+            ],
+            
+            'summer': [
+                "采用一个冒险的态度", "早点去做", "无需多问，尽力去做", "是时候做新的打算了", "先完成其他事情",
+                "做好调查研究，然后做好它！", "木已成舟", "这将是一种享受", "现在就是绝佳的时机", "不值得反抗",
+                "是你走的时候", "笑一下", "请摆脱当前束缚", "得真正地努力一下", "很快就会解决它",
+                "花更多的时间来决定", "解决办法可能不太明显", "这将造成轰动", "不管你做什么，结果将会影响你", "你会发现自己无法妥协",
+                "你需要主动出击", "糊涂一点更好", "看看会发生什么", "你唯一能做的只有把握现在", "今朝有酒，今朝醉",
+                "及时行乐", "高兴起来吧，你这么厉害", "随波逐流未必是好事", "试着去爱", "答案就在你身边",
+                "你需要一腔孤勇", "这绝对是个好主意", "不要抑制自己的天性", "立刻行动！", "全力以赴"
+            ],
+            
+            'autumn': [
+                "让它过去吧", "为什么不列出原因", "也许", "一直走下去", "只做一次",
+                "重新考虑你的方法", "重新考虑优先级", "尊重规则", "结果可能令你震惊", "那将是浪费钱",
+                "这会超出你的控制", "情况很快发生改变", "结果是好的", "会有障碍要克服", "别忘记你的初心",
+                "不宜在这个时候", "等一等", "注意你的节奏", "可以", "不",
+                "你现在必须行动", "你可能会放弃其他东西", "不要忘记微笑", "你失去的某天会归还与你", "你的状态很不对",
+                "你会后悔的", "学会珍惜", "请坚持不懈的努力", "不合适", "换一个方向",
+                "放松点，这很简单", "也许会迟到", "你的行动会改变现状", "放手", "这不仅仅是个游戏",
+                "你需要付出代价", "不要在此刻做决定", "把心事写在纸上", "别太赶了", "结果已定"
+            ],
+            
+            'winter': [
+                "需要一个相当大的努力", "遇上方知有", "允许你先休息一下", "避免第一个解决方案", "需要耐心",
+                "实际一点吧", "考虑一下这个机会", "别让压力打乱你的节奏", "不要陷入你的感情", "不要犹豫",
+                "别浪费时间了", "你不会一个人", "注重细节", "为突发事件做好准备", "寻找更多选择",
+                "整个宇宙都会过来帮你", "需冒险一试", "机会不会很快再来", "现在的时机不对", "尝试一种不太可能的解决方案",
+                "尝试着慢一点", "不要做太傻的事", "你需要更多信息", "跟着感觉走", "听从专家的建议",
+                "按照你的意愿", "保持终有回报", "这不可能失败", "也许是一段奇妙的旅程", "这是你不会忘记的",
+                "这肯定会让事情变得有趣", "这是不确定的", "这可能很难，但你会发现它的价值", "这将影响别人对你的看法", "前路仍不可预测",
+                "这是不明智的", "不要把所有表情都写在脸上", "别人会对你苦笑", "现在不是时候", "向内寻找答案"
+            ]
+        };
+
+        const seasonConfig = {
+            'spring': { name: "春之生机", hint: "Spring · Hope" },
+            'summer': { name: "夏之热烈", hint: "Summer · Passion" },
+            'autumn': { name: "秋之沉淀", hint: "Autumn · Harvest" },
+            'winter': { name: "冬之静谧", hint: "Winter · Wisdom" }
+        };
+
+        let currentSeason = '';
+        let isThinking = false;
+
+        // --- 逻辑部分 ---
+        function switchSeason(manual = true) {
+            const seasons = ['spring', 'summer', 'autumn', 'winter'];
+            let newSeason = seasons[Math.floor(Math.random() * seasons.length)];
+            if (manual && newSeason === currentSeason) {
+                newSeason = seasons[(seasons.indexOf(currentSeason) + 1) % 4];
+            }
+
+            if(currentSeason) document.body.classList.remove(currentSeason);
+            currentSeason = newSeason;
+            document.body.classList.add(currentSeason);
+
+            const badge = document.getElementById('season-badge');
+            badge.innerText = `${seasonConfig[currentSeason].name} | ${seasonConfig[currentSeason].hint}`;
+            
+            document.getElementById('answer-box').innerHTML = '<span class="hint-text">点击屏幕 · 寻找答案</span>';
+            createStars();
+        }
+
+        const answerBox = document.getElementById('answer-box');
+        answerBox.addEventListener('click', function() {
+            if (isThinking) return;
+            isThinking = true;
+
+            // 仪式感动画
+            answerBox.innerHTML = '<span class="hint-text" style="font-size:1.2rem; opacity:0.8">Connecting...</span>';
+            
+            setTimeout(() => {
+                const list = answerDatabase[currentSeason];
+                const text = list[Math.floor(Math.random() * list.length)];
+                
+                answerBox.innerHTML = text;
+                answerBox.classList.remove('fade-in');
+                void answerBox.offsetWidth;
+                answerBox.classList.add('fade-in');
+                
+                isThinking = false;
+            }, 1200);
+        });
+
+        function showIntro() { document.getElementById('modal-overlay').classList.add('active'); }
+        function closeIntro() { 
+            document.getElementById('modal-overlay').classList.remove('active');
+            if(currentSeason === '') switchSeason(false);
+        }
+
+        function createStars() {
+            const container = document.getElementById('stars-container');
+            container.innerHTML = '';
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.left = Math.random() * 100 + '%';
+                const size = Math.random() * 3 + 1 + 'px';
+                star.style.width = size; star.style.height = size;
+                star.style.setProperty('--duration', Math.random() * 3 + 2 + 's');
+                container.appendChild(star);
+            }
+        }
+    </script>
+</body>
+</html>
