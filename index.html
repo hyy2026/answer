@@ -11,6 +11,11 @@
             --bg-layer: none;
         }
 
+        /* --- 0. 核心修复：全局盒模型 (彻底解决边框溢出问题) --- */
+        * {
+            box-sizing: border-box; 
+        }
+
         /* --- 基础样式 --- */
         body {
             margin: 0;
@@ -24,7 +29,7 @@
             background: #050505;
             overflow: hidden;
             transition: color 1s ease;
-            -webkit-tap-highlight-color: transparent; /* 移除手机点击高亮 */
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* --- 1. 背景层 --- */
@@ -76,19 +81,25 @@
             transition: all 0.3s ease;
             cursor: pointer;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            white-space: nowrap; /* 防止按钮文字换行 */
+            white-space: nowrap;
         }
 
+        /* --- 主内容框 --- */
         #main-content {
             text-align: center;
             z-index: 10;
             padding: 40px;
+            /* 关键修复：box-sizing 已经在全局设置了，这里会生效 */
+            width: 85%; 
+            max-width: 400px; 
+            min-height: 350px;
+            
             border: 1px solid var(--season-color); 
             background: rgba(10, 10, 10, 0.6);
             border-radius: 15px;
             box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.5);
             backdrop-filter: blur(10px);
-            width: 85%; max-width: 400px; min-height: 350px;
+            
             display: flex; flex-direction: column; justify-content: center;
             transition: all 0.3s ease;
         }
@@ -126,23 +137,22 @@
             background: rgba(0,0,0,0.9); z-index: 200;
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
-            padding: 20px; /* 增加外边距，防止贴边 */
-            box-sizing: border-box;
+            padding: 20px;
         }
         #modal-overlay.active { opacity: 1; pointer-events: all; }
 
         .modal-card {
             border: 1px solid #444; padding: 30px; border-radius: 10px;
-            width: 100%; max-width: 500px; /* 宽度调整 */
+            width: 100%; max-width: 500px;
             text-align: center; color: #ccc;
             background: #111;
-            max-height: 85vh; /* 防止超出屏幕高度 */
-            overflow-y: auto; /* 超出可滚动 */
+            max-height: 85vh;
+            overflow-y: auto;
         }
         
         .season-grid { 
             display: grid; 
-            grid-template-columns: 1fr 1fr; /* 默认两列 */
+            grid-template-columns: 1fr 1fr;
             gap: 15px; 
             margin: 20px 0; 
             text-align: left; 
@@ -171,24 +181,18 @@
 
         /* --- 6. 移动端专属适配 (Media Query) --- */
         @media (max-width: 600px) {
-            /* 调整主容器内边距和大小 */
             #main-content {
-                width: 90%;
+                width: 85%; /* 稍微改窄一点点，留出更多边距 */
                 padding: 30px 20px;
                 min-height: 300px;
             }
             
-            /* 标题稍微改小 */
             h1 { font-size: 1.4rem; letter-spacing: 4px; }
-            
-            /* 答案字体改小，防止长句撑破 */
             #answer-box { font-size: 1.6rem; min-height: 150px; }
             
-            /* 右上角按钮调整 */
             .top-nav { top: 15px; right: 15px; gap: 10px; }
             .nav-btn { padding: 6px 12px; font-size: 0.8rem; }
             
-            /* 弹窗变单列，方便阅读 */
             .season-grid { grid-template-columns: 1fr; gap: 20px; }
             .modal-card { padding: 25px 20px; }
         }
