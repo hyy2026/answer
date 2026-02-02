@@ -2,19 +2,20 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>四季答案之书</title>
     <style>
         /* --- 全局变量 --- */
         :root {
-            --season-color: #fff; /* 核心变量：随着季节改变 */
+            --season-color: #fff;
             --bg-layer: none;
         }
 
+        /* --- 基础样式 --- */
         body {
             margin: 0;
             height: 100vh;
-            color: var(--season-color); /* 字体颜色回归主题色 */
+            color: var(--season-color);
             font-family: "Songti SC", "SimSun", serif;
             display: flex;
             flex-direction: column;
@@ -23,9 +24,10 @@
             background: #050505;
             overflow: hidden;
             transition: color 1s ease;
+            -webkit-tap-highlight-color: transparent; /* 移除手机点击高亮 */
         }
 
-        /* --- 1. 背景层 (星云流光) --- */
+        /* --- 1. 背景层 --- */
         .bg-layer {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -42,31 +44,18 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* --- 2. 四季配色定义 --- */
-        
-        /* 春 (Spring) - #83c76e */
+        /* --- 2. 四季配色 --- */
         body.spring { --season-color: #83c76e; }
-        body.spring .bg-layer {
-            background-image: radial-gradient(circle at center, rgba(131,199,110,0.2) 0%, rgba(0,20,0,0.9) 70%);
-        }
+        body.spring .bg-layer { background-image: radial-gradient(circle at center, rgba(131,199,110,0.2) 0%, rgba(0,20,0,0.9) 70%); }
 
-        /* 夏 (Summer) - #ff7043 */
         body.summer { --season-color: #ff7043; }
-        body.summer .bg-layer {
-            background-image: radial-gradient(circle at center, rgba(255,112,67,0.2) 0%, rgba(40,10,10,0.9) 70%);
-        }
+        body.summer .bg-layer { background-image: radial-gradient(circle at center, rgba(255,112,67,0.2) 0%, rgba(40,10,10,0.9) 70%); }
 
-        /* 秋 (Autumn) - #ffa812 */
         body.autumn { --season-color: #ffa812; }
-        body.autumn .bg-layer {
-            background-image: radial-gradient(circle at center, rgba(255,168,18,0.2) 0%, rgba(40,20,5,0.9) 70%);
-        }
+        body.autumn .bg-layer { background-image: radial-gradient(circle at center, rgba(255,168,18,0.2) 0%, rgba(40,20,5,0.9) 70%); }
 
-        /* 冬 (Winter) - #80deea */
         body.winter { --season-color: #80deea; }
-        body.winter .bg-layer {
-            background-image: radial-gradient(circle at center, rgba(128,222,234,0.2) 0%, rgba(5,15,30,0.9) 70%);
-        }
+        body.winter .bg-layer { background-image: radial-gradient(circle at center, rgba(128,222,234,0.2) 0%, rgba(5,15,30,0.9) 70%); }
 
         /* --- 3. 界面组件 --- */
         .top-nav {
@@ -87,11 +76,7 @@
             transition: all 0.3s ease;
             cursor: pointer;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-        .nav-btn:hover {
-            background: var(--season-color);
-            color: #000;
-            box-shadow: 0 0 20px var(--season-color);
+            white-space: nowrap; /* 防止按钮文字换行 */
         }
 
         #main-content {
@@ -105,6 +90,7 @@
             backdrop-filter: blur(10px);
             width: 85%; max-width: 400px; min-height: 350px;
             display: flex; flex-direction: column; justify-content: center;
+            transition: all 0.3s ease;
         }
 
         h1 {
@@ -140,15 +126,28 @@
             background: rgba(0,0,0,0.9); z-index: 200;
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+            padding: 20px; /* 增加外边距，防止贴边 */
+            box-sizing: border-box;
         }
         #modal-overlay.active { opacity: 1; pointer-events: all; }
 
         .modal-card {
             border: 1px solid #444; padding: 30px; border-radius: 10px;
-            max-width: 80%; text-align: center; color: #ccc;
+            width: 100%; max-width: 500px; /* 宽度调整 */
+            text-align: center; color: #ccc;
             background: #111;
+            max-height: 85vh; /* 防止超出屏幕高度 */
+            overflow-y: auto; /* 超出可滚动 */
         }
-        .season-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; text-align: left; }
+        
+        .season-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; /* 默认两列 */
+            gap: 15px; 
+            margin: 20px 0; 
+            text-align: left; 
+        }
+        
         .season-item h3 { margin: 0; font-size: 1rem; }
         .season-item p { margin: 5px 0 0 0; font-size: 0.8rem; color: #888; }
         
@@ -157,9 +156,8 @@
             padding: 8px 25px; cursor: pointer; margin-top: 10px;
             transition: 0.3s;
         }
-        .close-btn:hover { background: #fff; color: #000; }
 
-        /* --- 5. 星星动画 --- */
+        /* --- 5. 动画 --- */
         .star {
             position: absolute; background: var(--season-color);
             border-radius: 50%; opacity: 0;
@@ -171,6 +169,29 @@
         .fade-in { animation: fadeIn 1s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
         @keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
 
+        /* --- 6. 移动端专属适配 (Media Query) --- */
+        @media (max-width: 600px) {
+            /* 调整主容器内边距和大小 */
+            #main-content {
+                width: 90%;
+                padding: 30px 20px;
+                min-height: 300px;
+            }
+            
+            /* 标题稍微改小 */
+            h1 { font-size: 1.4rem; letter-spacing: 4px; }
+            
+            /* 答案字体改小，防止长句撑破 */
+            #answer-box { font-size: 1.6rem; min-height: 150px; }
+            
+            /* 右上角按钮调整 */
+            .top-nav { top: 15px; right: 15px; gap: 10px; }
+            .nav-btn { padding: 6px 12px; font-size: 0.8rem; }
+            
+            /* 弹窗变单列，方便阅读 */
+            .season-grid { grid-template-columns: 1fr; gap: 20px; }
+            .modal-card { padding: 25px 20px; }
+        }
     </style>
 </head>
 <body>
@@ -190,7 +211,7 @@
 
     <div id="modal-overlay" class="active">
         <div class="modal-card">
-            <h2 style="font-weight: normal; letter-spacing: 3px; color: #fff;">四季神谕</h2>
+            <h2 style="font-weight: normal; letter-spacing: 3px; color: #fff; margin-top:0;">四季神谕</h2>
             <div class="season-grid">
                 <div class="season-item"><h3 style="color:#83c76e">春 · Spring</h3><p>新生与希望<br>适合提问：开始、尝试、方向</p></div>
                 <div class="season-item"><h3 style="color:#ff7043">夏 · Summer</h3><p>热情与行动<br>适合提问：决断、勇气、结果</p></div>
@@ -204,7 +225,7 @@
     <div id="stars-container"></div>
 
     <script>
-        // --- 核心：真实答案库 (已分类) ---
+        // --- 核心：真实答案库 (保留了你的所有数据) ---
         const answerDatabase = {
             'spring': [ 
                 "别难过，你是最棒的", "时间会证明一切", "从现在开始一年也没有关系", "好运将会降临", "寻求援助会让成功",
